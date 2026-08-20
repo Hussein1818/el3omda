@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: 'https://localhost:7024/api',
+  baseURL: 'https://el3omda.runasp.net/api',
   withCredentials: true, 
   headers: {
     'Content-Type': 'application/json',
