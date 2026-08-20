@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Core.Application.Contracts;
 using Core.Domain.Entities;
+using Core.Domain.Enums;
 using MediatR;
 
 namespace Core.Application.Features.Bookings.Commands;
@@ -30,6 +31,16 @@ public class DeleteBookingCommandHandler : IRequestHandler<DeleteBookingCommand,
         }
 
         bookingRepository.Delete(booking);
+
+        var auditLog = new AuditLog(
+            AuditActionType.BookingDeleted,
+            nameof(Booking),
+            booking.Id,
+            null,
+            $"Deleted booking for student: {booking.StudentName}"
+        );
+        await _unitOfWork.Repository<AuditLog>().AddAsync(auditLog);
+
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         return true;

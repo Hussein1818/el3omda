@@ -50,6 +50,15 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
         var bookingRepository = _unitOfWork.Repository<Booking>();
         await bookingRepository.AddAsync(booking);
 
+        var auditLog = new AuditLog(
+            AuditActionType.BookingCreated,
+            nameof(Booking),
+            booking.Id,
+            request.Dto.PaidAmount,
+            $"Created booking for {request.Dto.StudentName}"
+        );
+        await _unitOfWork.Repository<AuditLog>().AddAsync(auditLog);
+
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         return booking.Id;

@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Application.Contracts;
 using Core.Application.DTOs.Bookings;
-using Core.Application.DTOs.Common;
 using Core.Domain.Entities;
 using MediatR;
 
 namespace Core.Application.Features.Bookings.Queries;
 
-public record GetAllBookingsQuery(string? SearchTerm, int PageNumber, int PageSize) : IRequest<PaginatedResponseDto<BookingResponseDto>>;
+public record GetAllBookingsQuery(int PageNumber = 1, int PageSize = 10) : IRequest<IReadOnlyList<BookingResponseDto>>;
 
-public class GetAllBookingsQueryHandler : IRequestHandler<GetAllBookingsQuery, PaginatedResponseDto<BookingResponseDto>>
+public class GetAllBookingsQueryHandler : IRequestHandler<GetAllBookingsQuery, IReadOnlyList<BookingResponseDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
 
@@ -23,33 +20,31 @@ public class GetAllBookingsQueryHandler : IRequestHandler<GetAllBookingsQuery, P
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<PaginatedResponseDto<BookingResponseDto>> Handle(GetAllBookingsQuery request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<BookingResponseDto>> Handle(GetAllBookingsQuery request, CancellationToken cancellationToken)
     {
-        var bookingRepository = _unitOfWork.Repository<Booking>();
-        var bookRepository = _unitOfWork.Repository<Book>();
+        var repository = _unitOfWork.Repository<Booking>();
 
-        Expression<Func<Booking, bool>>? predicate = null;
+        var bookings = await repository.FindAsync(b => true, "Book");
 
-        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
-        {
-            predicate = b => b.StudentName.Contains(request.SearchTerm);
-        }
-
-        var (items, totalCount) = await bookingRepository.GetPagedAsync(request.PageNumber, request.PageSize, predicate);
-        var books = await bookRepository.GetAllAsync();
-
-        var mappedItems = items.Select(b => new BookingResponseDto(
-            b.Id,
-            b.StudentName,
-            books.FirstOrDefault(x => x.Id == b.BookId)?.Name ?? "Unknown Book",
-            b.PrintFormat,
-            b.PaidAmount,
-            b.RemainingAmount,
-            b.IsDelivered,
-            b.CreatedAt,
-            b.DeliveryDate
-        )).ToList();
-
-        return new PaginatedResponseDto<BookingResponseDto>(mappedItems, totalCount, request.PageNumber, request.PageSize);
+        return bookings
+            .OrderBy(b => b.Book?.Stage)
+            .ThenBy(b => b.Book?.Subject)
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .Select(b => new BookingResponseDto(
+                b.Id,
+                b.StudentName,
+                b.Book?.Name ?? "Unknown Book",
+                b.Book?.Subject ?? "Unknown",
+                b.Book?.Stage ?? default,
+                b.Book?.Year ?? default,
+                b.PrintFormat,
+                b.PaidAmount,
+                b.RemainingAmount,
+                b.IsPrinted,
+                b.IsDelivered,
+                b.CreatedAt,
+                b.DeliveryDate
+            )).ToList();
     }
 }

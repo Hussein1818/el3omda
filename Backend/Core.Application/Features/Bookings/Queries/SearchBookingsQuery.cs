@@ -25,20 +25,27 @@ public class SearchBookingsQueryHandler : IRequestHandler<SearchBookingsQuery, I
         var repository = _unitOfWork.Repository<Booking>();
 
         var bookings = await repository.FindAsync(
-            b => b.StudentName.Contains(request.SearchTerm) || b.Book.Name.Contains(request.SearchTerm),
+            b => string.IsNullOrEmpty(request.SearchTerm) || b.StudentName.Contains(request.SearchTerm) || b.Book.Name.Contains(request.SearchTerm),
             "Book"
         );
 
-        return bookings.Select(b => new BookingResponseDto(
-            b.Id,
-            b.StudentName,
-            b.Book?.Name ?? "Unknown Book",
-            b.PrintFormat,
-            b.PaidAmount,
-            b.RemainingAmount,
-            b.IsDelivered,
-            b.CreatedAt,
-            b.DeliveryDate
-        )).ToList();
+        return bookings
+            .OrderBy(b => b.Book.Stage)
+            .ThenBy(b => b.Book.Subject)
+            .Select(b => new BookingResponseDto(
+                b.Id,
+                b.StudentName,
+                b.Book?.Name ?? "Unknown",
+                b.Book?.Subject ?? "Unknown",
+                b.Book?.Stage ?? default,
+                b.Book?.Year ?? default,
+                b.PrintFormat,
+                b.PaidAmount,
+                b.RemainingAmount,
+                b.IsPrinted,
+                b.IsDelivered,
+                b.CreatedAt,
+                b.DeliveryDate
+            )).ToList();
     }
 }

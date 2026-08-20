@@ -48,6 +48,24 @@ public class BookingsController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("{id}/print")]
+    public async Task<IActionResult> MarkAsPrinted(Guid id)
+    {
+        var command = new MarkBookingAsPrintedCommand(id);
+        await _mediator.Send(command);
+
+        return NoContent();
+    }
+
+    [HttpPatch("{id}/payment")]
+    public async Task<IActionResult> UpdatePayment(Guid id, [FromBody] UpdatePaymentRequestDto request)
+    {
+        var command = new UpdatePaymentCommand(id, request);
+        await _mediator.Send(command);
+
+        return NoContent();
+    }
+
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateBooking(Guid id, [FromBody] UpdateBookingRequestDto request)
     {

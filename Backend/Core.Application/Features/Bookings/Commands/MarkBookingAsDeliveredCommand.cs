@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Core.Application.Contracts;
 using Core.Domain.Entities;
+using Core.Domain.Enums;
 using MediatR;
 
 namespace Core.Application.Features.Bookings.Commands;
@@ -29,14 +30,18 @@ public class MarkBookingAsDeliveredCommandHandler : IRequestHandler<MarkBookingA
             throw new KeyNotFoundException($"Booking with ID {request.BookingId} was not found.");
         }
 
-        if (booking.IsDelivered)
-        {
-            return true;
-        }
-
         booking.MarkAsDelivered();
-
         bookingRepository.Update(booking);
+
+        var auditLog = new AuditLog(
+            AuditActionType.BookingDelivered,
+            nameof(Booking),
+            booking.Id,
+            null,
+            $"Marked booking as delivered for student: {booking.StudentName}"
+        );
+        await _unitOfWork.Repository<AuditLog>().AddAsync(auditLog);
+
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         return true;
