@@ -39,13 +39,11 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] font-cairo" dir="rtl">
+    <div className="flex min-h-screen flex-col lg:flex-row bg-[#F8FAFC] font-cairo" dir="rtl">
       
-      {/* Right Side - Form Section */}
-      <div className="flex w-full flex-col justify-center bg-white px-6 py-12 shadow-[0_0_40px_rgba(0,0,0,0.05)] z-10 lg:w-1/2 lg:px-16 xl:px-24">
+      <div className="flex w-full flex-col justify-center bg-white px-6 py-10 shadow-[0_0_40px_rgba(0,0,0,0.05)] z-10 lg:w-1/2 lg:px-16 xl:px-24 min-h-screen lg:min-h-0 order-2 lg:order-1">
         <div className="mx-auto w-full max-w-md">
           
-          {/* Header Section - Centered */}
           <div className="mb-10 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-[#2563EB] text-white shadow-lg">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-7 w-7">
@@ -115,12 +113,11 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Left Side - Illustration Section */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center bg-blue-50/40 relative overflow-hidden">
-        <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-blue-100/50 blur-3xl"></div>
-        <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-blue-200/40 blur-3xl"></div>
+      <div className="flex w-full lg:w-1/2 items-center justify-center bg-blue-50/40 relative overflow-hidden py-12 px-6 lg:p-12 order-1 lg:order-2">
+        <div className="absolute -top-24 -left-24 h-64 w-64 lg:h-96 lg:w-96 rounded-full bg-blue-100/50 blur-3xl"></div>
+        <div className="absolute -bottom-24 -right-24 h-64 w-64 lg:h-96 lg:w-96 rounded-full bg-blue-200/40 blur-3xl"></div>
         
-        <div className="relative z-10 p-12 w-full max-w-2xl text-center transition-transform duration-700 hover:scale-[1.02]">
+        <div className="relative z-10 w-full max-w-sm lg:max-w-2xl text-center transition-transform duration-700 hover:scale-[1.02]">
           <img 
             src="/login-illustration.svg" 
             alt="Library Management Illustration" 
