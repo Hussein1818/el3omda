@@ -3,6 +3,7 @@ import { api } from '../lib/axios';
 
 interface PrintStatistic {
   bookName: string;
+  subject: string;
   stage: number;
   year: number;
   printFormat: number;
@@ -80,26 +81,27 @@ export default function Dashboard() {
             <thead className="bg-gray-50 text-xs uppercase text-gray-700">
               <tr>
                 <th className="px-6 py-4">اسم الكتاب</th>
-                <th className="px-6 py-4">المرحلة الدراسية</th>
-                <th className="px-6 py-4">السنة الدراسية</th>
-                <th className="px-6 py-4">صيغة الطباعة</th>
-                <th className="px-6 py-4 text-center">العدد المطلوب تجهيزه</th>
+                <th className="px-6 py-4">المادة</th>
+                <th className="px-6 py-4">المرحلة</th>
+                <th className="px-6 py-4">السنة</th>
+                <th className="px-6 py-4">الصيغة</th>
+                <th className="px-6 py-4 text-center">المطلوب تجهيزه</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center">
+                  <td colSpan={6} className="py-12 text-center">
                     <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
                   </td>
                 </tr>
               ) : printStatistics.length > 0 ? (
                 printStatistics.map((stat, idx) => {
                   const displayCount = stat.totalToPrint ?? 0;
-                  
                   return (
                     <tr key={idx} className="transition-colors hover:bg-gray-50">
                       <td className="px-6 py-4 font-semibold text-gray-900">{stat.bookName}</td>
+                      <td className="px-6 py-4 font-medium text-blue-600">{stat.subject}</td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
                           {getStageString(stat.stage)}
@@ -121,7 +123,7 @@ export default function Dashboard() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-500">لا توجد مهام طباعة معلقة حالياً. كل الحجوزات تم تسليمها!</td>
+                  <td colSpan={6} className="py-8 text-center text-gray-500">لا توجد مهام طباعة معلقة حالياً.</td>
                 </tr>
               )}
             </tbody>

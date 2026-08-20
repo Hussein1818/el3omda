@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
+import { api } from '../lib/axios';
 
 export default function Layout() {
   const location = useLocation();
@@ -11,6 +12,22 @@ export default function Layout() {
     setIsSidebarOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    if (!token) return;
+
+    const pingServer = async () => {
+      try {
+        await api.get('/ping');
+      } catch (error) {
+        console.error('Ping failed', error);
+      }
+    };
+
+    const intervalId = setInterval(pingServer, 10 * 60 * 1000); 
+
+    return () => clearInterval(intervalId);
+  }, [token]);
+
   if (!token) {
     return <Navigate to="/login" replace />;
   }
@@ -19,6 +36,7 @@ export default function Layout() {
     { name: 'المطلوب طباعته', path: '/dashboard' },
     { name: 'إدارة الكتب', path: '/books' },
     { name: 'الحجوزات والطلبات', path: '/bookings' },
+    { name: 'سجل الحركات (Audit)', path: '/audit-logs' },
     { name: 'الإعدادات', path: '/settings' },
   ];
 
