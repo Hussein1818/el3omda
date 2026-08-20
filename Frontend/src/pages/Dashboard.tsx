@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { api } from '../lib/axios';
 
 interface PrintStatistic {
+  bookId: string;
   bookName: string;
   subject: string;
   stage: number;
@@ -28,6 +29,16 @@ export default function Dashboard() {
       setErrorMsg('حدث خطأ أثناء جلب إحصائيات الطباعة. تأكد من اتصال الخادم.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePrintNext = async (bookId: string, format: number) => {
+    try {
+      await api.post('/dashboard/print-next', { bookId, format });
+      fetchStatistics();
+    } catch (error) {
+      console.error("Failed to register print", error);
+      alert('حدث خطأ أثناء تسجيل الطباعة.');
     }
   };
 
@@ -82,16 +93,15 @@ export default function Dashboard() {
               <tr>
                 <th className="px-6 py-4">اسم الكتاب</th>
                 <th className="px-6 py-4">المادة</th>
-                <th className="px-6 py-4">المرحلة</th>
-                <th className="px-6 py-4">السنة</th>
+                <th className="px-6 py-4">المرحلة / السنة</th>
                 <th className="px-6 py-4">الصيغة</th>
-                <th className="px-6 py-4 text-center">المطلوب تجهيزه</th>
+                <th className="px-6 py-4 text-center">المطلوب وتأكيد الطباعة</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center">
+                  <td colSpan={5} className="py-12 text-center">
                     <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
                   </td>
                 </tr>
@@ -102,28 +112,36 @@ export default function Dashboard() {
                     <tr key={idx} className="transition-colors hover:bg-gray-50">
                       <td className="px-6 py-4 font-semibold text-gray-900">{stat.bookName}</td>
                       <td className="px-6 py-4 font-medium text-blue-600">{stat.subject}</td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
+                      <td className="px-6 py-4 text-gray-700">
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800 ml-2">
                           {getStageString(stat.stage)}
                         </span>
+                        {getYearString(stat.year)}
                       </td>
-                      <td className="px-6 py-4 text-gray-600">{getYearString(stat.year)}</td>
                       <td className="px-6 py-4">
                         <span className="rounded bg-blue-50 text-blue-700 px-2 py-1 text-xs border border-blue-100">
                           {getFormatString(stat.printFormat)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-red-100 font-bold text-red-700">
-                          {displayCount}
-                        </span>
+                        <div className="flex items-center justify-center gap-4">
+                          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-red-100 font-bold text-red-700">
+                            {displayCount}
+                          </span>
+                          <button 
+                            onClick={() => handlePrintNext(stat.bookId, stat.printFormat)} 
+                            className="bg-gray-900 text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-gray-800 transition-colors shadow-sm"
+                          >
+                            تم طباعة نسخة
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-500">لا توجد مهام طباعة معلقة حالياً.</td>
+                  <td colSpan={5} className="py-8 text-center text-gray-500">لا توجد مهام طباعة معلقة حالياً.</td>
                 </tr>
               )}
             </tbody>

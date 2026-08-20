@@ -6,6 +6,8 @@ import Bookings from './pages/Bookings';
 import AuditLogs from './pages/AuditLogs';
 import Settings from './pages/Settings';
 import Layout from './components/Layout';
+import PrintedBooks from './pages/PrintedBooks';
+
 
 function App() {
   return (
@@ -19,6 +21,7 @@ function App() {
           <Route path="/bookings" element={<Bookings />} />
           <Route path="/audit-logs" element={<AuditLogs />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/printed-books" element={<PrintedBooks />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/login" replace />} />

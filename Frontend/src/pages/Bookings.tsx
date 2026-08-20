@@ -169,6 +169,16 @@ export default function Bookings() {
     }
   };
 
+  const handleUndoPrint = async (id: string) => {
+    if (!window.confirm('هل أنت متأكد من إلغاء حالة الطباعة؟ سيتم إرجاع الكتاب لقائمة المطلوب طباعته وخصمه من المخزون.')) return;
+    try { 
+      await api.patch(`/bookings/${id}/undo-print`); 
+      fetchBookings(searchTerm); 
+    } catch (e) { 
+      alert('حدث خطأ أثناء الإلغاء.'); 
+    }
+  };
+
   const handleUpdatePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -255,7 +265,14 @@ export default function Bookings() {
                   </td>
                   <td className="px-4 py-4 text-center">
                     {booking.isPrinted ? (
-                      <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-1 rounded-full border border-blue-200">تمت الطباعة</span>
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-1 rounded-full border border-blue-200">تمت الطباعة</span>
+                        {!booking.isDelivered && (
+                          <button onClick={() => handleUndoPrint(booking.id)} className="text-[10px] text-gray-500 hover:text-red-600 underline transition-colors">
+                            تراجع
+                          </button>
+                        )}
+                      </div>
                     ) : (
                       <button onClick={() => markAsPrinted(booking.id)} className="text-xs font-medium text-white bg-gray-800 hover:bg-gray-900 px-3 py-1.5 rounded-md transition">
                         تأكيد الطباعة

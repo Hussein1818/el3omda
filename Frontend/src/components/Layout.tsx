@@ -32,9 +32,10 @@ export default function Layout() {
     return <Navigate to="/login" replace />;
   }
 
-  const navLinks = [
+ const navLinks = [
     { name: 'المطلوب طباعته', path: '/dashboard' },
     { name: 'إدارة الكتب', path: '/books' },
+    { name: 'المخزون المطبوع', path: '/printed-books' },
     { name: 'الحجوزات والطلبات', path: '/bookings' },
     { name: 'سجل الحركات (Audit)', path: '/audit-logs' },
     { name: 'الإعدادات', path: '/settings' },
