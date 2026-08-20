@@ -1,0 +1,34 @@
+# =========================
+# Backend (.NET Core)
+# =========================
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+*.userprefs
+appsettings.json
+appsettings.*.json
+publish/
+TestResults/
+
+# =========================
+# Frontend (React / Vite)
+# =========================
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+.env.*
+!.env.example
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db

@@ -1,0 +1,133 @@
+import { useState, useEffect } from 'react';
+import { api } from '../lib/axios';
+
+interface PrintStatistic {
+  bookName: string;
+  stage: number;
+  year: number;
+  printFormat: number;
+  totalToPrint?: number;
+}
+
+export default function Dashboard() {
+  const [printStatistics, setPrintStatistics] = useState<PrintStatistic[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    fetchStatistics();
+  }, []);
+
+  const fetchStatistics = async () => {
+    try {
+      const response = await api.get('/dashboard/print-statistics');
+      setPrintStatistics(response.data);
+    } catch (error) {
+      console.error("Failed to fetch dashboard statistics", error);
+      setErrorMsg('حدث خطأ أثناء جلب إحصائيات الطباعة. تأكد من اتصال الخادم.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getStageString = (stage: number) => {
+    if (stage === 1) return 'ابتدائي';
+    if (stage === 2) return 'إعدادي';
+    if (stage === 3) return 'ثانوي';
+    return 'غير محدد';
+  };
+
+  const getYearString = (year: number) => {
+    const years = ['الصف الأول', 'الصف الثاني', 'الصف الثالث', 'الصف الرابع', 'الصف الخامس', 'الصف السادس'];
+    return years[year - 1] || 'غير محدد';
+  };
+
+  const getFormatString = (format: number) => {
+    return format === 1 ? 'A4 طولي' : 'A4 عرضي';
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">لوحة القيادة (إحصائيات الطباعة)</h2>
+          <p className="mt-1 text-sm text-gray-500">مرحباً بك! إليك ملخص بالكتب المطلوب طباعتها وتجهيزها للحجوزات الحالية.</p>
+        </div>
+        <button 
+          onClick={fetchStatistics}
+          disabled={isLoading}
+          className="flex items-center gap-2 rounded-lg bg-white border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:opacity-50"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+          تحديث البيانات
+        </button>
+      </div>
+
+      {errorMsg && (
+        <div className="rounded-lg bg-red-50 p-4 text-sm font-medium text-red-600 border border-red-200">
+          {errorMsg}
+        </div>
+      )}
+
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-4">
+          <h3 className="font-semibold text-gray-800">قائمة التشغيل (مهام الطباعة المعلقة)</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-right text-sm text-gray-500">
+            <thead className="bg-gray-50 text-xs uppercase text-gray-700">
+              <tr>
+                <th className="px-6 py-4">اسم الكتاب</th>
+                <th className="px-6 py-4">المرحلة الدراسية</th>
+                <th className="px-6 py-4">السنة الدراسية</th>
+                <th className="px-6 py-4">صيغة الطباعة</th>
+                <th className="px-6 py-4 text-center">العدد المطلوب تجهيزه</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center">
+                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+                  </td>
+                </tr>
+              ) : printStatistics.length > 0 ? (
+                printStatistics.map((stat, idx) => {
+                  const displayCount = stat.totalToPrint ?? 0;
+                  
+                  return (
+                    <tr key={idx} className="transition-colors hover:bg-gray-50">
+                      <td className="px-6 py-4 font-semibold text-gray-900">{stat.bookName}</td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
+                          {getStageString(stat.stage)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">{getYearString(stat.year)}</td>
+                      <td className="px-6 py-4">
+                        <span className="rounded bg-blue-50 text-blue-700 px-2 py-1 text-xs border border-blue-100">
+                          {getFormatString(stat.printFormat)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-red-100 font-bold text-red-700">
+                          {displayCount}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-gray-500">لا توجد مهام طباعة معلقة حالياً. كل الحجوزات تم تسليمها!</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
