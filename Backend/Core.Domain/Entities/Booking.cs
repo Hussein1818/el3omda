@@ -65,4 +65,9 @@ public class Booking : BaseEntity
         RemainingAmount += amount;
         UpdateTimestamp();
     }
+    public void UndoPrint()
+    {
+        IsPrinted = false;
+        UpdateTimestamp();
+    }
 }

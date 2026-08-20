@@ -1,8 +1,10 @@
-﻿using Core.Domain.Enums;
+﻿using System;
+using Core.Domain.Enums;
 
 namespace Core.Application.DTOs.Dashboard;
 
 public record BookPrintSummaryDto(
+    Guid BookId,
     string BookName,
     string Subject,
     EducationalStage Stage,

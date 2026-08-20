@@ -31,6 +31,13 @@ public class MarkBookingAsDeliveredCommandHandler : IRequestHandler<MarkBookingA
         }
 
         booking.MarkAsDelivered();
+        var bookRepo = _unitOfWork.Repository<Book>();
+        var book = await bookRepo.GetByIdAsync(booking.BookId);
+        if (book != null)
+        {
+            book.RemoveStock(booking.PrintFormat, 1);
+            bookRepo.Update(book);
+        }
         bookingRepository.Update(booking);
 
         var auditLog = new AuditLog(

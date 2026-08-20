@@ -26,4 +26,11 @@ public class DashboardController : ControllerBase
 
         return Ok(result);
     }
+    [HttpPost("print-next")]
+    public async Task<IActionResult> PrintNext([FromBody] Core.Application.DTOs.Dashboard.PrintNextRequestDto request)
+    {
+        var command = new Core.Application.Features.Dashboard.Commands.PrintNextBookingCommand(request);
+        await _mediator.Send(command);
+        return NoContent();
+    }
 }

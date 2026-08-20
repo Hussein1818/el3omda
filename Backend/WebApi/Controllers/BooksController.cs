@@ -56,4 +56,11 @@ public class BooksController : ControllerBase
 
         return NoContent();
     }
+    [HttpGet("printed-inventory")]
+    public async Task<IActionResult> GetPrintedInventory()
+    {
+        var query = new GetPrintedInventoryQuery();
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
 }

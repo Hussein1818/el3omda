@@ -23,5 +23,9 @@ public class BookConfiguration : IEntityTypeConfiguration<Book>
 
         builder.Property(b => b.LandscapePrice)
             .HasColumnType("decimal(18,2)");
+        builder.Property(b => b.PortraitStock)
+            .HasDefaultValue(0);
+        builder.Property(b => b.LandscapeStock)
+            .HasDefaultValue(0);
     }
 }

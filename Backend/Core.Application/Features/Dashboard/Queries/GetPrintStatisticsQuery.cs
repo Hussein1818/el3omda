@@ -34,13 +34,14 @@ public class GetPrintStatisticsQueryHandler : IRequestHandler<GetPrintStatistics
             {
                 var book = books.FirstOrDefault(x => x.Id == g.Key.BookId);
                 return new BookPrintSummaryDto(
-                    book?.Name ?? "Unknown Book",
-                    book?.Subject ?? "Unknown",
-                    book?.Stage ?? default,
-                    book?.Year ?? default,
-                    g.Key.PrintFormat,
-                    g.Count()
-                );
+                     g.Key.BookId,
+                     book?.Name ?? "Unknown Book",
+                     book?.Subject ?? "Unknown",
+                     book?.Stage ?? default,
+                     book?.Year ?? default,
+                     g.Key.PrintFormat,
+                     g.Count()
+                 );
             })
             .OrderBy(x => x.Stage)
             .ThenBy(x => x.Year)

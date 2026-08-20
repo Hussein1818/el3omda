@@ -12,6 +12,9 @@ public class Book : BaseEntity
     public decimal PortraitPrice { get; private set; }
     public decimal LandscapePrice { get; private set; }
 
+    public int PortraitStock { get; private set; }
+    public int LandscapeStock { get; private set; }
+
     private Book() { }
 
     public Book(string name, string subject, EducationalStage stage, AcademicYear year, decimal portraitPrice, decimal landscapePrice)
@@ -22,6 +25,8 @@ public class Book : BaseEntity
         Year = year;
         PortraitPrice = portraitPrice;
         LandscapePrice = landscapePrice;
+        PortraitStock = 0;
+        LandscapeStock = 0;
     }
 
     public void UpdateDetails(string name, string subject, EducationalStage stage, AcademicYear year, decimal portraitPrice, decimal landscapePrice)
@@ -32,6 +37,28 @@ public class Book : BaseEntity
         Year = year;
         PortraitPrice = portraitPrice;
         LandscapePrice = landscapePrice;
+        UpdateTimestamp();
+    }
+
+    public void AddStock(PrintFormat format, int quantity)
+    {
+        if (format == PrintFormat.Portrait) PortraitStock += quantity;
+        else LandscapeStock += quantity;
+        UpdateTimestamp();
+    }
+
+    public void RemoveStock(PrintFormat format, int quantity)
+    {
+        if (format == PrintFormat.Portrait)
+        {
+            PortraitStock -= quantity;
+            if (PortraitStock < 0) PortraitStock = 0;
+        }
+        else
+        {
+            LandscapeStock -= quantity;
+            if (LandscapeStock < 0) LandscapeStock = 0;
+        }
         UpdateTimestamp();
     }
 }

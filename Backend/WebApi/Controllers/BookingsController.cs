@@ -83,4 +83,11 @@ public class BookingsController : ControllerBase
 
         return NoContent();
     }
+    [HttpPatch("{id}/undo-print")]
+    public async Task<IActionResult> UndoPrint(Guid id)
+    {
+        var command = new UndoBookingPrintCommand(id);
+        await _mediator.Send(command);
+        return NoContent();
+    }
 }
