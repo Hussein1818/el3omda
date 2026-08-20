@@ -22,16 +22,25 @@ public class MarkBookingAsPrintedCommandHandler : IRequestHandler<MarkBookingAsP
 
     public async Task<bool> Handle(MarkBookingAsPrintedCommand request, CancellationToken cancellationToken)
     {
-        var repository = _unitOfWork.Repository<Booking>();
-        var booking = await repository.GetByIdAsync(request.BookingId);
+        var bookingRepo = _unitOfWork.Repository<Booking>();
+        var booking = await bookingRepo.GetByIdAsync(request.BookingId);
 
         if (booking == null)
             throw new KeyNotFoundException($"Booking with ID {request.BookingId} was not found.");
 
         booking.MarkAsPrinted();
-        repository.Update(booking);
+        bookingRepo.Update(booking);
 
-        var auditLog = new AuditLog(AuditActionType.BookingPrinted, nameof(Booking), booking.Id, null, $"Marked as printed for {booking.StudentName}");
+        var bookRepo = _unitOfWork.Repository<Book>();
+        var book = await bookRepo.GetByIdAsync(booking.BookId);
+
+        if (book != null)
+        {
+            book.AddStock(booking.PrintFormat, 1);
+            bookRepo.Update(book);
+        }
+
+        var auditLog = new AuditLog(AuditActionType.BookingPrinted, nameof(Booking), booking.Id, null, $"Marked as printed for {booking.StudentName} and added to inventory");
         await _unitOfWork.Repository<AuditLog>().AddAsync(auditLog);
 
         await _unitOfWork.CompleteAsync(cancellationToken);

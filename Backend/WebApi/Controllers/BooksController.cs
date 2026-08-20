@@ -63,4 +63,12 @@ public class BooksController : ControllerBase
         var result = await _mediator.Send(query);
         return Ok(result);
     }
+    [HttpPost("adjust-inventory")]
+    public async Task<IActionResult> AdjustInventory([FromBody] AdjustInventoryRequestDto request)
+    {
+        var command = new AdjustInventoryStockCommand(request);
+        await _mediator.Send(command);
+
+        return NoContent();
+    }
 }
