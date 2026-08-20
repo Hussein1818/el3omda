@@ -50,7 +50,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">لوحة القيادة (إحصائيات الطباعة)</h2>
+          <h2 className="text-2xl font-bold text-gray-900">المطلوب طباعته</h2>
           <p className="mt-1 text-sm text-gray-500">مرحباً بك! إليك ملخص بالكتب المطلوب طباعتها وتجهيزها للحجوزات الحالية.</p>
         </div>
         <button 

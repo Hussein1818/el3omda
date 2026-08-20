@@ -1,20 +1,30 @@
 import { useState, useEffect } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
 
 export default function Layout() {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
     setIsSidebarOpen(false);
   }, [location.pathname]);
 
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
   const navLinks = [
-    { name: 'لوحة القيادة', path: '/dashboard' },
+    { name: 'المطلوب طباعته', path: '/dashboard' },
     { name: 'إدارة الكتب', path: '/books' },
     { name: 'الحجوزات والطلبات', path: '/bookings' },
     { name: 'الإعدادات', path: '/settings' },
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+  };
 
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans text-gray-900" dir="rtl">
@@ -66,7 +76,11 @@ export default function Layout() {
         </nav>
 
         <div className="p-4 border-t border-gray-100">
-          <Link to="/login" className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+          <Link 
+            to="/login" 
+            onClick={handleLogout}
+            className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+          >
             تسجيل الخروج
           </Link>
         </div>
@@ -75,16 +89,18 @@ export default function Layout() {
       <div className="flex flex-1 flex-col overflow-hidden w-full">
         
         <header className="flex h-20 items-center justify-between border-b border-gray-200 bg-white px-4 lg:px-8 shadow-sm">
-          <button 
-            onClick={() => setIsSidebarOpen(true)}
-            className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
-          </button>
+          <div>
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            </button>
+          </div>
 
-          <div className="flex items-center gap-3 cursor-default ml-auto lg:ml-0">
+          <div className="flex items-center gap-3 cursor-default">
             <span className="hidden sm:block text-sm font-bold text-gray-700">مرحباً بعودتك يا عمدة 👋</span>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 border border-blue-100 shadow-sm overflow-hidden">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-blue-600 mt-2">
