@@ -12,22 +12,18 @@ using System.Reflection;
 using System.Text;
 using WebApi.Middlewares;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// 1. Infrastructure: Database Registration
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Infrastructure: Repositories Registration
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
-// 3. Application: MediatR & FluentValidation Registration
 var applicationAssembly = Assembly.Load("Core.Application");
 
 builder.Services.AddValidatorsFromAssembly(applicationAssembly);
@@ -58,7 +54,6 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings["Audience"],
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero,
-
         ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 }
     };
 });
@@ -74,13 +69,12 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(allowedOrigins ?? Array.Empty<string>())
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials(); 
+              .AllowCredentials();
     });
 });
 
 var app = builder.Build();
 
-// Execute Migrations and Seed Data at startup
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -88,18 +82,13 @@ using (var scope = app.Services.CreateScope())
     var configuration = services.GetRequiredService<IConfiguration>();
 
     await context.Database.MigrateAsync();
-
     await ApplicationDbContextSeed.SeedAdminAsync(context, configuration);
 }
 
-// 4. Configure the HTTP request pipeline
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
