@@ -59,6 +59,16 @@ public class UpdateBookingCommandHandler : IRequestHandler<UpdateBookingCommand,
         );
 
         bookingRepository.Update(booking);
+
+        var auditLog = new AuditLog(
+            AuditActionType.PaymentUpdated,
+            nameof(Booking),
+            booking.Id,
+            request.Dto.PaidAmount,
+            $"تم التعديل الشامل لبيانات حجز الطالب: {request.Dto.StudentName}"
+        );
+        await _unitOfWork.Repository<AuditLog>().AddAsync(auditLog);
+
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         return true;
