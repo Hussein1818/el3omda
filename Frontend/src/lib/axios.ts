@@ -13,6 +13,18 @@ export const api = axios.create({
   },
 });
 
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+const subscribeTokenRefresh = (cb: (token: string) => void) => {
+  refreshSubscribers.push(cb);
+};
+
+const onRefreshed = (token: string) => {
+  refreshSubscribers.map(cb => cb(token));
+  refreshSubscribers = [];
+};
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   
@@ -29,7 +41,20 @@ api.interceptors.response.use(
     const originalRequest = error.config as CustomAxiosRequestConfig;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          subscribeTokenRefresh((token: string) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            resolve(api(originalRequest));
+          });
+        });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
         const refreshResponse = await axios.post(
@@ -48,9 +73,14 @@ api.interceptors.response.use(
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
           }
           
+          isRefreshing = false;
+          onRefreshed(newToken);
+          
           return api(originalRequest); 
         }
       } catch (refreshError) {
+        isRefreshing = false;
+        refreshSubscribers = [];
         localStorage.removeItem('token');
         window.location.href = '/login';
         return Promise.reject(refreshError);
