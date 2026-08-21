@@ -205,6 +205,21 @@ export default function Bookings() {
 
   const getStageString = (s: number) => s === 1 ? 'ابتدائي' : s === 2 ? 'إعدادي' : 'ثانوي';
   const getYearString = (y: number) => ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'][y - 1] || '';
+  
+  const getStageColorClass = (s: number) => {
+    if (s === 1) return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+    if (s === 2) return 'bg-blue-100 text-blue-800 border border-blue-200';
+    if (s === 3) return 'bg-purple-100 text-purple-800 border border-purple-200';
+    return 'bg-gray-100 text-gray-800 border border-gray-200';
+  };
+
+  const formatDateTime = (dateString: string | null) => {
+    if (!dateString) return '-';
+    return new Intl.DateTimeFormat('ar-EG', {
+      month: 'short', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', hour12: true
+    }).format(new Date(dateString));
+  };
 
   return (
     <div className="space-y-6 relative">
@@ -237,6 +252,7 @@ export default function Bookings() {
                 <th className="px-4 py-4">اسم الطالب</th>
                 <th className="px-4 py-4">الكتاب</th>
                 <th className="px-4 py-4">المادة/السنة</th>
+                <th className="px-4 py-4">التواريخ</th>
                 <th className="px-4 py-4">المدفوع / المتبقي</th>
                 <th className="px-4 py-4 text-center">حالة الطباعة</th>
                 <th className="px-4 py-4 text-center">التسليم</th>
@@ -254,12 +270,25 @@ export default function Bookings() {
                     </span>
                   </td>
                   <td className="px-4 py-4 text-xs font-medium">
-                    <span className="text-gray-800">{booking.subject}</span><br/>
-                    <span className="text-gray-500">{getStageString(booking.stage)} - الصف {getYearString(booking.year)}</span>
+                    <span className="text-gray-800 font-bold block mb-1">{booking.subject}</span>
+                    <span className={`px-2 py-0.5 rounded-full ${getStageColorClass(booking.stage)}`}>
+                      {getStageString(booking.stage)}
+                    </span>
+                    <span className="text-gray-500 block mt-1">الصف {getYearString(booking.year)}</span>
+                  </td>
+                  <td className="px-4 py-4 text-xs">
+                    <div className="text-gray-600 mb-1">
+                      <span className="font-bold">الحجز:</span> {formatDateTime(booking.createdAt)}
+                    </div>
+                    {booking.isDelivered && (
+                      <div className="text-green-600 font-medium mt-1">
+                        <span className="font-bold">التسليم:</span> {formatDateTime(booking.deliveryDate)}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-4">
                     <div className="text-green-600 font-bold">{booking.paidAmount} ج.م</div>
-                    <div className={booking.remainingAmount > 0 ? 'text-red-600 font-bold text-xs' : 'text-gray-400 text-xs'}>
+                    <div className={booking.remainingAmount > 0 ? 'text-red-600 font-bold text-xs mt-1' : 'text-gray-400 text-xs mt-1'}>
                       متبقي: {booking.remainingAmount} ج.م
                     </div>
                   </td>
@@ -268,7 +297,7 @@ export default function Bookings() {
                       <div className="flex flex-col items-center gap-1">
                         <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-1 rounded-full border border-blue-200">تمت الطباعة</span>
                         {!booking.isDelivered && (
-                          <button onClick={() => handleUndoPrint(booking.id)} className="text-[10px] text-gray-500 hover:text-red-600 underline transition-colors">
+                          <button onClick={() => handleUndoPrint(booking.id)} className="text-[10px] text-gray-500 hover:text-red-600 underline transition-colors mt-1">
                             تراجع
                           </button>
                         )}
@@ -298,7 +327,7 @@ export default function Bookings() {
               ))}
               {bookings.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-gray-500">لا توجد حجوزات متاحة.</td>
+                  <td colSpan={8} className="py-8 text-center text-gray-500">لا توجد حجوزات متاحة.</td>
                 </tr>
               )}
             </tbody>

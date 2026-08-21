@@ -77,6 +77,14 @@ export default function Books() {
     return 'ثانوي';
   };
 
+  const getStageColorClass = (stageValue: number | string) => {
+    const stage = getStageString(stageValue);
+    if (stage === 'ابتدائي') return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+    if (stage === 'إعدادي') return 'bg-blue-100 text-blue-800 border-blue-200';
+    if (stage === 'ثانوي') return 'bg-purple-100 text-purple-800 border-purple-200';
+    return 'bg-gray-100 text-gray-800 border-gray-200';
+  };
+
   const getYearString = (yearValue: number | string) => {
     if (typeof yearValue === 'string') return yearValue;
     const years = ['الصف الأول', 'الصف الثاني', 'الصف الثالث', 'الصف الرابع', 'الصف الخامس', 'الصف السادس'];
@@ -230,7 +238,7 @@ export default function Books() {
                     <td className="px-6 py-4 font-semibold text-gray-900">{book.name}</td>
                     <td className="px-6 py-4 text-blue-600 font-medium">{book.subject}</td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
+                      <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold ${getStageColorClass(book.stage)}`}>
                         {stageDisplay}
                       </span>
                     </td>

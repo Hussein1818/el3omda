@@ -49,6 +49,13 @@ export default function Dashboard() {
     return 'غير محدد';
   };
 
+  const getStageColorClass = (stage: number) => {
+    if (stage === 1) return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+    if (stage === 2) return 'bg-blue-100 text-blue-800 border border-blue-200';
+    if (stage === 3) return 'bg-purple-100 text-purple-800 border border-purple-200';
+    return 'bg-gray-100 text-gray-800 border border-gray-200';
+  };
+
   const getYearString = (year: number) => {
     const years = ['الصف الأول', 'الصف الثاني', 'الصف الثالث', 'الصف الرابع', 'الصف الخامس', 'الصف السادس'];
     return years[year - 1] || 'غير محدد';
@@ -113,7 +120,7 @@ export default function Dashboard() {
                       <td className="px-6 py-4 font-semibold text-gray-900">{stat.bookName}</td>
                       <td className="px-6 py-4 font-medium text-blue-600">{stat.subject}</td>
                       <td className="px-6 py-4 text-gray-700">
-                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800 ml-2">
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ml-2 ${getStageColorClass(stat.stage)}`}>
                           {getStageString(stat.stage)}
                         </span>
                         {getYearString(stat.year)}
