@@ -26,12 +26,15 @@ public class CreateBookCommandHandler : IRequestHandler<CreateBookCommand, Guid>
 
         var existingBooks = await bookRepository.FindAsync(b =>
             b.Name == request.Dto.Name &&
+            b.Subject == request.Dto.Subject &&
             b.Stage == request.Dto.Stage &&
             b.Year == request.Dto.Year);
 
-        if (existingBooks.Any())
+        var existingBook = existingBooks.FirstOrDefault();
+
+        if (existingBook != null)
         {
-            throw new InvalidOperationException("Book with the same name already exists for this stage and year.");
+            return existingBook.Id;
         }
 
         var book = new Book(
