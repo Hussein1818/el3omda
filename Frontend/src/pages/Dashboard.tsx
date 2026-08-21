@@ -65,6 +65,8 @@ export default function Dashboard() {
     return format === 1 ? 'A4 طولي' : 'A4 عرضي';
   };
 
+  const sortedStats = [...printStatistics].sort((a, b) => (b.totalToPrint || 0) - (a.totalToPrint || 0));
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -92,7 +94,7 @@ export default function Dashboard() {
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-4">
-          <h3 className="font-semibold text-gray-800">قائمة التشغيل (مهام الطباعة المعلقة)</h3>
+          <h3 className="font-semibold text-gray-800">قائمة التشغيل (مهام الطباعة المعلقة مرتبة بالأكثر طلباً)</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-right text-sm text-gray-500">
@@ -112,8 +114,8 @@ export default function Dashboard() {
                     <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
                   </td>
                 </tr>
-              ) : printStatistics.length > 0 ? (
-                printStatistics.map((stat, idx) => {
+              ) : sortedStats.length > 0 ? (
+                sortedStats.map((stat, idx) => {
                   const displayCount = stat.totalToPrint ?? 0;
                   return (
                     <tr key={idx} className="transition-colors hover:bg-gray-50">

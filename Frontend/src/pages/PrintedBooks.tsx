@@ -128,6 +128,21 @@ export default function PrintedBooks() {
     }
   };
 
+  const handleQuickDeduct = async (bookId: string, format: number) => {
+    if (!window.confirm('هل أنت متأكد من خصم نسخة واحدة من هذا الكتاب؟')) return;
+    try {
+      await api.post('/books/adjust-inventory', {
+        bookId,
+        format,
+        quantity: 1,
+        isAddition: false
+      });
+      fetchInventory();
+    } catch (error) {
+      alert('حدث خطأ أثناء خصم النسخة.');
+    }
+  };
+
   const getStageString = (s: number) => s === 1 ? 'ابتدائي' : s === 2 ? 'إعدادي' : 'ثانوي';
   const getYearString = (y: number) => ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'][y - 1] || '';
 
@@ -143,7 +158,7 @@ export default function PrintedBooks() {
             تحديث القائمة
           </button>
           <button onClick={() => { setIsModalOpen(true); setErrorMsg(''); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-sm text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
-            تعديل المخزون (إضافة/خصم)
+            إضافة للمخزون (+)
           </button>
         </div>
       </div>
@@ -170,10 +185,30 @@ export default function PrintedBooks() {
                     <td className="px-6 py-4 text-blue-600 font-medium">{book.subject}</td>
                     <td className="px-6 py-4 text-gray-700">{getStageString(book.stage)} - الصف {getYearString(book.year)}</td>
                     <td className="px-6 py-4 text-center">
-                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold">{book.portraitStock}</span>
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold">{book.portraitStock}</span>
+                        <button 
+                          onClick={() => handleQuickDeduct(book.id, 1)}
+                          disabled={book.portraitStock <= 0}
+                          className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30"
+                          title="خصم نسخة"
+                        >
+                          ➖
+                        </button>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold">{book.landscapeStock}</span>
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold">{book.landscapeStock}</span>
+                        <button 
+                          onClick={() => handleQuickDeduct(book.id, 2)}
+                          disabled={book.landscapeStock <= 0}
+                          className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30"
+                          title="خصم نسخة"
+                        >
+                          ➖
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

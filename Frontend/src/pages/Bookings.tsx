@@ -46,7 +46,9 @@ export default function Bookings() {
   const [availableBooks, setAvailableBooks] = useState<Book[]>([]);
   
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
   const [paymentModalData, setPaymentModalData] = useState<{isOpen: boolean, id: string, amount: string}>({isOpen: false, id: '', amount: ''});
+  
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -69,9 +71,9 @@ export default function Bookings() {
     fetchBooks();
   }, []);
 
-  const fetchBookings = async (search = '') => {
+  const fetchBookings = async () => {
     try {
-      const response = await api.get(`/bookings?searchTerm=${search}`);
+      const response = await api.get('/bookings');
       setBookings(response.data);
     } catch (error) {
       console.error("Failed to fetch bookings", error);
@@ -117,7 +119,33 @@ export default function Bookings() {
   const currentPaid = parseFloat(newBooking.paidAmount) || 0;
   const calculatedRemaining = Math.max(0, currentBookPrice - currentPaid);
 
-  const handleAddBooking = async (e: React.FormEvent) => {
+  const openAddModal = () => {
+    setEditingBookingId(null);
+    setNewBooking({ studentName: '', bookName: '', format: 1, paidAmount: '', portraitPrice: '', landscapePrice: '' });
+    setErrorMsg('');
+    setIsBookingModalOpen(true);
+  };
+
+  const openEditModal = (booking: Booking) => {
+    setEditingBookingId(booking.id);
+    setFilterStage(getStageString(booking.stage));
+    setFilterYear(getYearString(booking.year));
+    setFilterSubject(booking.subject);
+    
+    setNewBooking({
+      studentName: booking.studentName,
+      bookName: booking.bookName,
+      format: booking.printFormat,
+      paidAmount: booking.paidAmount.toString(),
+      portraitPrice: '',
+      landscapePrice: ''
+    });
+    
+    setErrorMsg('');
+    setIsBookingModalOpen(true);
+  };
+
+  const handleSubmitBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMsg('');
@@ -144,18 +172,23 @@ export default function Bookings() {
         await fetchBooks(); 
       }
 
-      await api.post('/bookings', {
+      const payload = {
         studentName: newBooking.studentName,
         bookId: bookIdToUse,
         printFormat: newBooking.format,
         paidAmount: currentPaid
-      });
+      };
 
-      await fetchBookings(searchTerm);
+      if (editingBookingId) {
+        await api.put(`/bookings/${editingBookingId}`, payload);
+      } else {
+        await api.post('/bookings', payload);
+      }
+
+      await fetchBookings();
       setIsBookingModalOpen(false);
-      setNewBooking({ studentName: '', bookName: '', format: 1, paidAmount: '', portraitPrice: '', landscapePrice: '' });
     } catch (error: any) {
-      setErrorMsg(error.response?.data?.message || 'حدث خطأ أثناء الحجز.');
+      setErrorMsg(error.response?.data?.message || 'حدث خطأ أثناء حفظ الحجز.');
     } finally {
       setIsLoading(false);
     }
@@ -164,7 +197,7 @@ export default function Bookings() {
   const markAsDelivered = async (id: string) => {
     try { 
       await api.patch(`/bookings/${id}/deliver`); 
-      fetchBookings(searchTerm); 
+      fetchBookings(); 
     } catch (e) { 
       alert('خطأ في التأكيد.'); 
     }
@@ -173,7 +206,7 @@ export default function Bookings() {
   const markAsPrinted = async (id: string) => {
     try { 
       await api.patch(`/bookings/${id}/print`); 
-      fetchBookings(searchTerm); 
+      fetchBookings(); 
     } catch (e) { 
       alert('خطأ في التأكيد.'); 
     }
@@ -183,7 +216,7 @@ export default function Bookings() {
     if (!window.confirm('هل أنت متأكد من إلغاء حالة الطباعة؟ سيتم إرجاع الكتاب لقائمة المطلوب طباعته وخصمه من المخزون.')) return;
     try { 
       await api.patch(`/bookings/${id}/undo-print`); 
-      fetchBookings(searchTerm); 
+      fetchBookings(); 
     } catch (e) { 
       alert('حدث خطأ أثناء الإلغاء.'); 
     }
@@ -194,7 +227,7 @@ export default function Bookings() {
     setIsLoading(true);
     try {
       await api.patch(`/bookings/${paymentModalData.id}/payment`, { amount: parseFloat(paymentModalData.amount) });
-      await fetchBookings(searchTerm);
+      await fetchBookings();
       setPaymentModalData({ isOpen: false, id: '', amount: '' });
     } catch (e) {
       alert('خطأ أثناء تحديث الدفعة.');
@@ -207,7 +240,7 @@ export default function Bookings() {
     if (!window.confirm('حذف هذا الحجز بشكل نهائي؟')) return;
     try { 
       await api.delete(`/bookings/${id}`); 
-      fetchBookings(searchTerm); 
+      fetchBookings(); 
     } catch (e) { 
       alert('خطأ أثناء الحذف.'); 
     }
@@ -231,6 +264,13 @@ export default function Bookings() {
     }).format(new Date(dateString));
   };
 
+  const sortedBookings = [...bookings].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+  const filteredBookings = sortedBookings.filter(b => 
+    normalizeArabic(b.studentName).includes(normalizeArabic(searchTerm)) || 
+    normalizeArabic(b.bookName).includes(normalizeArabic(searchTerm))
+  );
+
   return (
     <div className="space-y-6 relative">
       <div className="flex items-center justify-between">
@@ -242,11 +282,11 @@ export default function Bookings() {
             type="text" 
             placeholder="ابحث باسم الطالب أو الكتاب..." 
             value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); fetchBookings(e.target.value); }}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-600 focus:outline-none min-w-[250px]"
           />
           <button 
-            onClick={() => { setIsBookingModalOpen(true); setErrorMsg(''); }}
+            onClick={openAddModal}
             className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm"
           >
             حجز جديد
@@ -270,7 +310,7 @@ export default function Bookings() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {bookings.map((booking) => (
+              {filteredBookings.map((booking) => (
                 <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-4 font-semibold text-gray-900">{booking.studentName}</td>
                   <td className="px-4 py-4 text-gray-700">
@@ -288,7 +328,7 @@ export default function Bookings() {
                   </td>
                   <td className="px-4 py-4 text-xs">
                     <div className="text-gray-600 mb-1">
-                      <span className="font-bold">الحجز:</span> {formatDateTime(booking.createdAt)}
+                      <span className="font-bold text-blue-600">الحجز:</span> {formatDateTime(booking.createdAt)}
                     </div>
                     {booking.isDelivered && (
                       <div className="text-green-600 font-medium mt-1">
@@ -328,14 +368,17 @@ export default function Bookings() {
                     )}
                   </td>
                   <td className="px-4 py-4 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <button onClick={() => setPaymentModalData({isOpen: true, id: booking.id, amount: ''})} className="text-blue-600 hover:text-blue-800 text-xs font-bold bg-blue-50 px-2 py-1 rounded transition-colors">الدفعة</button>
-                      <button onClick={() => handleDeleteBooking(booking.id)} className="text-red-600 hover:text-red-800 text-xs font-bold bg-red-50 px-2 py-1 rounded transition-colors">حذف</button>
+                    <div className="flex flex-col items-center justify-center gap-1.5">
+                      <div className="flex gap-1.5">
+                        <button onClick={() => openEditModal(booking)} className="text-gray-600 hover:text-gray-900 text-xs font-bold bg-gray-100 px-2 py-1 rounded transition-colors">تعديل</button>
+                        <button onClick={() => setPaymentModalData({isOpen: true, id: booking.id, amount: ''})} className="text-blue-600 hover:text-blue-800 text-xs font-bold bg-blue-50 px-2 py-1 rounded transition-colors">الدفعة</button>
+                      </div>
+                      <button onClick={() => handleDeleteBooking(booking.id)} className="text-red-600 hover:text-red-800 text-xs font-bold bg-red-50 px-4 py-1 rounded transition-colors w-full">حذف</button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {bookings.length === 0 && (
+              {filteredBookings.length === 0 && (
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-gray-500">لا توجد حجوزات متاحة.</td>
                 </tr>
@@ -349,14 +392,16 @@ export default function Bookings() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 transition-opacity">
           <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden">
             <div className="flex justify-between items-center border-b px-6 py-4 bg-gray-50/50">
-              <h3 className="text-lg font-bold text-gray-900">حجز ذكي</h3>
+              <h3 className="text-lg font-bold text-gray-900">
+                {editingBookingId ? 'تعديل بيانات الحجز' : 'حجز ذكي'}
+              </h3>
               <button onClick={() => setIsBookingModalOpen(false)} className="text-gray-400 hover:text-gray-600">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <form onSubmit={handleAddBooking} className="p-6 space-y-4">
+            <form onSubmit={handleSubmitBooking} className="p-6 space-y-4">
               {errorMsg && <div className="text-red-600 text-sm bg-red-50 p-2 rounded font-medium border border-red-200">{errorMsg}</div>}
               <div>
                 <label className="text-sm font-medium text-gray-700">اسم الطالب <span className="text-red-500">*</span></label>
@@ -417,7 +462,9 @@ export default function Bookings() {
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                 <button type="button" onClick={() => setIsBookingModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-gray-700 transition-colors">إلغاء</button>
-                <button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50">{isLoading ? 'جاري...' : 'تأكيد الحجز'}</button>
+                <button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50">
+                  {isLoading ? 'جاري الحفظ...' : (editingBookingId ? 'تعديل الحجز' : 'تأكيد الحجز')}
+                </button>
               </div>
             </form>
           </div>
