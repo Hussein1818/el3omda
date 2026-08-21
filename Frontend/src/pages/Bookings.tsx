@@ -95,7 +95,7 @@ export default function Bookings() {
     'الصف الرابع': 4, 'الصف الخامس': 5, 'الصف السادس': 6 
   };
   
- const normalizeArabic = (text: string) => {
+  const normalizeArabic = (text: string) => {
     if (!text) return '';
     return text
       .replace(/[أإآا]/g, 'ا')
@@ -247,7 +247,7 @@ export default function Bookings() {
   };
 
   const getStageString = (s: number) => s === 1 ? 'ابتدائي' : s === 2 ? 'إعدادي' : 'ثانوي';
-  const getYearString = (y: number) => ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'][y - 1] || '';
+  const getYearString = (y: number) => ['الصف الأول', 'الصف الثاني', 'الصف الثالث', 'الصف الرابع', 'الصف الخامس', 'الصف السادس'][y - 1] || '';
   
   const getStageColorClass = (s: number) => {
     if (s === 1) return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
@@ -324,7 +324,7 @@ export default function Bookings() {
                     <span className={`px-2 py-0.5 rounded-full ${getStageColorClass(booking.stage)}`}>
                       {getStageString(booking.stage)}
                     </span>
-                    <span className="text-gray-500 block mt-1">الصف {getYearString(booking.year)}</span>
+                    <span className="text-gray-500 block mt-1">{getYearString(booking.year)}</span>
                   </td>
                   <td className="px-4 py-4 text-xs">
                     <div className="text-gray-600 mb-1">
