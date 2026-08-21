@@ -92,12 +92,22 @@ export default function Bookings() {
     'الصف الأول': 1, 'الصف الثاني': 2, 'الصف الثالث': 3, 
     'الصف الرابع': 4, 'الصف الخامس': 5, 'الصف السادس': 6 
   };
+  
+ const normalizeArabic = (text: string) => {
+    if (!text) return '';
+    return text
+      .replace(/[أإآا]/g, 'ا')
+      .replace(/ة/g, 'ه')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  };
 
   const exactMatchBook = availableBooks.find(b => 
     b.stage === stageMap[filterStage] && 
     b.year === yearMap[filterYear] && 
     b.subject === filterSubject && 
-    b.name.trim().toLowerCase() === newBooking.bookName.trim().toLowerCase()
+    normalizeArabic(b.name) === normalizeArabic(newBooking.bookName)
   );
 
   const currentBookPrice = exactMatchBook 
