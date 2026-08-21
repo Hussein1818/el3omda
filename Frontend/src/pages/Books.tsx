@@ -183,8 +183,19 @@ export default function Books() {
     }
   };
 
+  const normalizeArabic = (text: string) => {
+    if (!text) return '';
+    return text
+      .replace(/[أإآا]/g, 'ا')
+      .replace(/ة/g, 'ه')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  };
+
   const filteredBooks = books.filter(b => 
-    b.name.includes(searchTerm) || b.subject.includes(searchTerm)
+    normalizeArabic(b.name).includes(normalizeArabic(searchTerm)) || 
+    normalizeArabic(b.subject).includes(normalizeArabic(searchTerm))
   );
 
   return (
@@ -200,7 +211,7 @@ export default function Books() {
             placeholder="ابحث باسم الكتاب أو المادة..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-600 focus:outline-none"
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-600 focus:outline-none min-w-[250px]"
           />
           <button 
             onClick={openAddModal}
