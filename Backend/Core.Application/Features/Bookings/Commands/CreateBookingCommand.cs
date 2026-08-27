@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Application.Contracts;
@@ -39,6 +40,22 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
 
         decimal remainingAmount = requiredPrice - request.Dto.PaidAmount;
 
+        var bookingRepository = _unitOfWork.Repository<Booking>();
+
+        var reservedBookings = await bookingRepository.FindAsync(b =>
+            b.BookId == request.Dto.BookId &&
+            b.PrintFormat == request.Dto.PrintFormat &&
+            b.IsPrinted &&
+            !b.IsDelivered);
+
+        int reservedCount = reservedBookings.Count();
+
+        int totalStock = request.Dto.PrintFormat == PrintFormat.Portrait
+            ? book.PortraitStock
+            : book.LandscapeStock;
+
+        int freeStock = totalStock - reservedCount;
+
         var booking = new Booking(
             request.Dto.StudentName,
             request.Dto.BookId,
@@ -47,7 +64,11 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
             remainingAmount
         );
 
-        var bookingRepository = _unitOfWork.Repository<Booking>();
+        if (freeStock > 0)
+        {
+            booking.MarkAsPrinted();
+        }
+
         await bookingRepository.AddAsync(booking);
 
         var auditLog = new AuditLog(
@@ -55,8 +76,11 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
             nameof(Booking),
             booking.Id,
             request.Dto.PaidAmount,
-            $"Created booking for {request.Dto.StudentName}"
+            freeStock > 0
+                ? $"Created and auto-assigned booking for {request.Dto.StudentName}"
+                : $"Created booking for {request.Dto.StudentName}"
         );
+
         await _unitOfWork.Repository<AuditLog>().AddAsync(auditLog);
 
         await _unitOfWork.CompleteAsync(cancellationToken);

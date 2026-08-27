@@ -9,6 +9,10 @@ public record PrintedBookDto(
     string Subject,
     EducationalStage Stage,
     AcademicYear Year,
-    int PortraitStock,
-    int LandscapeStock
+    int TotalPortraitStock,
+    int ReservedPortraitStock,
+    int FreePortraitStock,
+    int TotalLandscapeStock,
+    int ReservedLandscapeStock,
+    int FreeLandscapeStock
 );
