@@ -35,6 +35,9 @@ const translateDetails = (details: string | null): string => {
   if (text.includes('Created booking for')) {
     return text.replace('Created booking for', 'تم إنشاء حجز للطالب:');
   }
+  if (text.includes('Created and auto-assigned booking for')) {
+    return text.replace('Created and auto-assigned booking for', 'تم إنشاء حجز وربطه تلقائياً من المخزن للطالب:');
+  }
   if (text.includes('Payment Added for')) {
     return text.replace('Payment Added for', 'تم إضافة دفعة مالية للطالب:');
   }
@@ -98,8 +101,8 @@ export default function AuditLogs() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 relative h-full flex flex-col">
+      <div className="flex items-center justify-between shrink-0">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">سجل الحركات (Audit Log)</h2>
           <p className="mt-1 text-sm text-gray-500">متابعة دقيقة لكل العمليات المالية والإدارية في النظام.</p>
@@ -109,10 +112,10 @@ export default function AuditLogs() {
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-right text-sm text-gray-500">
-            <thead className="bg-gray-50 text-xs uppercase text-gray-700">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm flex-1 flex flex-col">
+        <div className="overflow-y-auto flex-1 h-[calc(100vh-200px)]">
+          <table className="w-full text-right text-sm text-gray-500 relative">
+            <thead className="bg-gray-50 text-xs uppercase text-gray-700 sticky top-0 z-10 shadow-sm">
               <tr>
                 <th className="px-6 py-4">التاريخ والوقت</th>
                 <th className="px-6 py-4">نوع الحركة</th>

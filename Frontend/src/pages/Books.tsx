@@ -199,8 +199,8 @@ export default function Books() {
   );
 
   return (
-    <div className="space-y-6 relative">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 relative h-full flex flex-col">
+      <div className="flex items-center justify-between shrink-0">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">إدارة الكتب</h2>
           <p className="mt-1 text-sm text-gray-500">إدارة المخزون، المواد الدراسية، وأسعار الطباعة.</p>
@@ -225,10 +225,10 @@ export default function Books() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-right text-sm text-gray-500">
-            <thead className="bg-gray-50 text-xs uppercase text-gray-700">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm flex-1 flex flex-col">
+        <div className="overflow-y-auto flex-1 h-[calc(100vh-200px)]">
+          <table className="w-full text-right text-sm text-gray-500 relative">
+            <thead className="bg-gray-50 text-xs uppercase text-gray-700 sticky top-0 z-10 shadow-sm">
               <tr>
                 <th scope="col" className="px-6 py-4">اسم الكتاب</th>
                 <th scope="col" className="px-6 py-4">المادة</th>
@@ -278,7 +278,7 @@ export default function Books() {
               })}
               {filteredBooks.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-gray-500">لا توجد كتب مسجلة حالياً.</td>
+                  <td colSpan={7} className="py-8 text-center text-gray-500">لا توجد كتب مطابقة للبحث.</td>
                 </tr>
               )}
             </tbody>

@@ -21,8 +21,12 @@ interface PrintedBook {
   subject: string;
   stage: number;
   year: number;
-  portraitStock: number;
-  landscapeStock: number;
+  totalPortraitStock: number;
+  reservedPortraitStock: number;
+  freePortraitStock: number;
+  totalLandscapeStock: number;
+  reservedLandscapeStock: number;
+  freeLandscapeStock: number;
 }
 
 export default function PrintedBooks() {
@@ -32,6 +36,7 @@ export default function PrintedBooks() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [filterStage, setFilterStage] = useState('ابتدائي');
   const [filterYear, setFilterYear] = useState('الصف الأول');
@@ -146,27 +151,53 @@ export default function PrintedBooks() {
   const getStageString = (s: number) => s === 1 ? 'ابتدائي' : s === 2 ? 'إعدادي' : 'ثانوي';
   const getYearString = (y: number) => ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'][y - 1] || '';
 
+  const getStageColorClass = (s: number) => {
+    if (s === 1) return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+    if (s === 2) return 'bg-blue-100 text-blue-800 border-blue-200';
+    if (s === 3) return 'bg-purple-100 text-purple-800 border-purple-200';
+    return 'bg-gray-100 text-gray-800 border-gray-200';
+  };
+
+  const normalizeArabic = (text: string) => {
+    if (!text) return '';
+    return text
+      .replace(/[أإآا]/g, 'ا')
+      .replace(/ة/g, 'ه')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  };
+
+  const filteredInventory = inventory.filter(b => 
+    normalizeArabic(b.name).includes(normalizeArabic(searchTerm)) || 
+    normalizeArabic(b.subject).includes(normalizeArabic(searchTerm))
+  );
+
   return (
-    <div className="space-y-6 relative">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 relative h-full flex flex-col">
+      <div className="flex items-center justify-between shrink-0">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">المخزون المطبوع</h2>
           <p className="mt-1 text-sm text-gray-500">إدارة الكتب الجاهزة على الأرفف لتسليمها للطلاب.</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={fetchInventory} className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium hover:bg-gray-50 transition-colors">
-            تحديث القائمة
-          </button>
+          <input 
+            type="text" 
+            placeholder="ابحث باسم الكتاب أو المادة..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-600 focus:outline-none min-w-[250px]"
+          />
           <button onClick={() => { setIsModalOpen(true); setErrorMsg(''); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-sm text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
             إضافة للمخزون (+)
           </button>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-right text-sm text-gray-500">
-            <thead className="bg-gray-50 text-xs uppercase text-gray-700">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm flex-1 flex flex-col">
+        <div className="overflow-y-auto flex-1 h-[calc(100vh-200px)]">
+          <table className="w-full text-right text-sm text-gray-500 relative">
+            <thead className="bg-gray-50 text-xs uppercase text-gray-700 sticky top-0 z-10 shadow-sm">
               <tr>
                 <th className="px-6 py-4">اسم الكتاب</th>
                 <th className="px-6 py-4">المادة</th>
@@ -178,42 +209,59 @@ export default function PrintedBooks() {
             <tbody className="divide-y divide-gray-200">
               {isLoading ? (
                 <tr><td colSpan={5} className="py-8 text-center">جاري التحميل...</td></tr>
-              ) : inventory.length > 0 ? (
-                inventory.map((book) => (
+              ) : filteredInventory.length > 0 ? (
+                filteredInventory.map((book) => (
                   <tr key={book.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 font-semibold text-gray-900">{book.name}</td>
                     <td className="px-6 py-4 text-blue-600 font-medium">{book.subject}</td>
-                    <td className="px-6 py-4 text-gray-700">{getStageString(book.stage)} - الصف {getYearString(book.year)}</td>
+                    <td className="px-6 py-4 text-xs font-medium">
+                        <span className={`px-2 py-0.5 rounded-full border ${getStageColorClass(book.stage)}`}>
+                            {getStageString(book.stage)}
+                        </span>
+                        <span className="text-gray-500 block mt-1">الصف {getYearString(book.year)}</span>
+                    </td>
                     <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold">{book.portraitStock}</span>
-                        <button 
-                          onClick={() => handleQuickDeduct(book.id, 1)}
-                          disabled={book.portraitStock <= 0}
-                          className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30"
-                          title="خصم نسخة"
-                        >
-                          ➖
-                        </button>
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="flex items-center gap-2">
+                            <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-bold">كلي: {book.totalPortraitStock}</span>
+                            <button 
+                            onClick={() => handleQuickDeduct(book.id, 1)}
+                            disabled={book.totalPortraitStock <= 0}
+                            className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30"
+                            title="خصم نسخة"
+                            >
+                            ➖
+                            </button>
+                        </div>
+                        <div className="flex gap-2 text-[10px] mt-1">
+                            <span className="text-green-700 bg-green-50 px-1.5 rounded font-bold border border-green-200">حر: {book.freePortraitStock}</span>
+                            <span className="text-amber-700 bg-amber-50 px-1.5 rounded font-bold border border-amber-200">محجوز: {book.reservedPortraitStock}</span>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold">{book.landscapeStock}</span>
-                        <button 
-                          onClick={() => handleQuickDeduct(book.id, 2)}
-                          disabled={book.landscapeStock <= 0}
-                          className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30"
-                          title="خصم نسخة"
-                        >
-                          ➖
-                        </button>
+                    <div className="flex flex-col items-center gap-1">
+                        <div className="flex items-center gap-2">
+                            <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-bold">كلي: {book.totalLandscapeStock}</span>
+                            <button 
+                            onClick={() => handleQuickDeduct(book.id, 2)}
+                            disabled={book.totalLandscapeStock <= 0}
+                            className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30"
+                            title="خصم نسخة"
+                            >
+                            ➖
+                            </button>
+                        </div>
+                        <div className="flex gap-2 text-[10px] mt-1">
+                            <span className="text-green-700 bg-green-50 px-1.5 rounded font-bold border border-green-200">حر: {book.freeLandscapeStock}</span>
+                            <span className="text-amber-700 bg-amber-50 px-1.5 rounded font-bold border border-amber-200">محجوز: {book.reservedLandscapeStock}</span>
+                        </div>
                       </div>
                     </td>
                   </tr>
                 ))
               ) : (
-                <tr><td colSpan={5} className="py-8 text-center text-gray-500">لا يوجد كتب جاهزة في المخزون حالياً.</td></tr>
+                <tr><td colSpan={5} className="py-8 text-center text-gray-500">لا يوجد كتب في المخزون تطابق بحثك.</td></tr>
               )}
             </tbody>
           </table>
