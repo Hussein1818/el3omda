@@ -21,7 +21,7 @@ const subscribeTokenRefresh = (cb: (token: string) => void) => {
 };
 
 const onRefreshed = (token: string) => {
-  refreshSubscribers.map(cb => cb(token));
+  refreshSubscribers.forEach(cb => cb(token));
   refreshSubscribers = [];
 };
 
@@ -57,13 +57,22 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshResponse = await axios.post(
-          'https://el3omda.runasp.net/api/auth/refresh',
-          {},
-          { withCredentials: true }
-        );
+        const refreshApi = axios.create({
+          baseURL: 'https://el3omda.runasp.net/api',
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
 
-        const newToken = refreshResponse.data.token;
+        const currentToken = localStorage.getItem('token');
+        if (currentToken) {
+          refreshApi.defaults.headers.common['Authorization'] = `Bearer ${currentToken}`;
+        }
+
+        const refreshResponse = await refreshApi.post('/auth/refresh', {});
+
+        const newToken = refreshResponse.data.accessToken || refreshResponse.data.token;
         
         if (newToken) {
           localStorage.setItem('token', newToken);
@@ -77,6 +86,8 @@ api.interceptors.response.use(
           onRefreshed(newToken);
           
           return api(originalRequest); 
+        } else {
+          throw new Error('Token payload missing from refresh response');
         }
       } catch (refreshError) {
         isRefreshing = false;

@@ -198,6 +198,18 @@ export default function Books() {
     normalizeArabic(b.subject).includes(normalizeArabic(searchTerm))
   );
 
+  const sortedBooks = [...filteredBooks].sort((a, b) => {
+    const stageA = Number(a.stage) || 0;
+    const stageB = Number(b.stage) || 0;
+    if (stageA !== stageB) return stageA - stageB;
+    
+    const yearA = Number(a.year) || 0;
+    const yearB = Number(b.year) || 0;
+    if (yearA !== yearB) return yearA - yearB;
+
+    return a.subject.localeCompare(b.subject, 'ar');
+  });
+
   return (
     <div className="space-y-6 relative h-full flex flex-col">
       <div className="flex items-center justify-between shrink-0">
@@ -240,7 +252,7 @@ export default function Books() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredBooks.map((book) => {
+              {sortedBooks.map((book) => {
                  const stageDisplay = getStageString(book.stage);
                  const yearDisplay = getYearString(book.year);
 
@@ -276,7 +288,7 @@ export default function Books() {
                   </tr>
                 );
               })}
-              {filteredBooks.length === 0 && (
+              {sortedBooks.length === 0 && (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-gray-500">لا توجد كتب مطابقة للبحث.</td>
                 </tr>

@@ -196,6 +196,18 @@ export default function PrintedBooks() {
     return matchesSearch && matchesTab;
   });
 
+  const sortedInventory = [...filteredInventory].sort((a, b) => {
+    const stageA = Number(a.stage) || 0;
+    const stageB = Number(b.stage) || 0;
+    if (stageA !== stageB) return stageA - stageB;
+    
+    const yearA = Number(a.year) || 0;
+    const yearB = Number(b.year) || 0;
+    if (yearA !== yearB) return yearA - yearB;
+
+    return a.subject.localeCompare(b.subject, 'ar');
+  });
+
   return (
     <div className="space-y-6 relative h-full flex flex-col">
       <div className="flex items-center justify-between shrink-0">
@@ -253,8 +265,8 @@ export default function PrintedBooks() {
             <tbody className="divide-y divide-gray-200">
               {isLoading ? (
                 <tr><td colSpan={5} className="py-8 text-center">جاري التحميل...</td></tr>
-              ) : filteredInventory.length > 0 ? (
-                filteredInventory.map((book) => (
+              ) : sortedInventory.length > 0 ? (
+                sortedInventory.map((book) => (
                   <tr key={book.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 font-semibold text-gray-900">{book.name}</td>
                     <td className="px-6 py-4 text-blue-600 font-medium">{book.subject}</td>
