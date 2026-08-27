@@ -264,32 +264,61 @@ export default function PrintedBooks() {
                         </span>
                         <span className="text-gray-500 block mt-1">الصف {getYearString(book.year)}</span>
                     </td>
+                    
                     <td className="px-6 py-4 text-center">
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="flex items-center gap-1">
-                            <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-bold">كلي: {book.totalPortraitStock}</span>
-                            <button onClick={() => handleQuickAdd(book.id, 1)} className="text-green-600 bg-green-50 hover:bg-green-100 px-2 py-1 rounded text-xs font-bold transition-colors">➕</button>
-                            <button onClick={() => handleQuickDeduct(book.id, 1)} disabled={book.totalPortraitStock <= 0} className="text-red-500 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30">➖</button>
+                      <div className="flex flex-col items-center gap-1.5">
+                        
+                        {(activeTab === 'all' || activeTab === 'free') && (
+                          <div className="flex items-center gap-1">
+                              {activeTab === 'all' && <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-bold">كلي: {book.totalPortraitStock}</span>}
+                              <button onClick={() => handleQuickAdd(book.id, 1)} className="text-green-600 bg-green-50 hover:bg-green-100 px-2 py-1 rounded text-xs font-bold transition-colors">➕</button>
+                              <button onClick={() => handleQuickDeduct(book.id, 1)} disabled={book.totalPortraitStock <= 0} className="text-red-500 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30">➖</button>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                            {(activeTab === 'all' || activeTab === 'free') && (
+                              <span className={`text-green-700 bg-green-50 rounded font-bold border border-green-200 ${activeTab === 'free' ? 'px-3 py-1.5 text-xs' : 'px-1.5 text-[10px]'}`}>
+                                حر: {book.freePortraitStock}
+                              </span>
+                            )}
+                            {(activeTab === 'all' || activeTab === 'reserved') && (
+                              <span className={`text-amber-700 bg-amber-50 rounded font-bold border border-amber-200 ${activeTab === 'reserved' ? 'px-3 py-1.5 text-xs' : 'px-1.5 text-[10px]'}`}>
+                                محجوز: {book.reservedPortraitStock}
+                              </span>
+                            )}
                         </div>
-                        <div className="flex gap-2 text-[10px] mt-1">
-                            <span className="text-green-700 bg-green-50 px-1.5 rounded font-bold border border-green-200">حر: {book.freePortraitStock}</span>
-                            <span className="text-amber-700 bg-amber-50 px-1.5 rounded font-bold border border-amber-200">محجوز: {book.reservedPortraitStock}</span>
-                        </div>
+
                       </div>
                     </td>
+
                     <td className="px-6 py-4 text-center">
-                    <div className="flex flex-col items-center gap-1">
-                        <div className="flex items-center gap-1">
-                            <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-bold">كلي: {book.totalLandscapeStock}</span>
-                            <button onClick={() => handleQuickAdd(book.id, 2)} className="text-green-600 bg-green-50 hover:bg-green-100 px-2 py-1 rounded text-xs font-bold transition-colors">➕</button>
-                            <button onClick={() => handleQuickDeduct(book.id, 2)} disabled={book.totalLandscapeStock <= 0} className="text-red-500 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30">➖</button>
+                      <div className="flex flex-col items-center gap-1.5">
+                        
+                        {(activeTab === 'all' || activeTab === 'free') && (
+                          <div className="flex items-center gap-1">
+                              {activeTab === 'all' && <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-bold">كلي: {book.totalLandscapeStock}</span>}
+                              <button onClick={() => handleQuickAdd(book.id, 2)} className="text-green-600 bg-green-50 hover:bg-green-100 px-2 py-1 rounded text-xs font-bold transition-colors">➕</button>
+                              <button onClick={() => handleQuickDeduct(book.id, 2)} disabled={book.totalLandscapeStock <= 0} className="text-red-500 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30">➖</button>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                            {(activeTab === 'all' || activeTab === 'free') && (
+                              <span className={`text-green-700 bg-green-50 rounded font-bold border border-green-200 ${activeTab === 'free' ? 'px-3 py-1.5 text-xs' : 'px-1.5 text-[10px]'}`}>
+                                حر: {book.freeLandscapeStock}
+                              </span>
+                            )}
+                            {(activeTab === 'all' || activeTab === 'reserved') && (
+                              <span className={`text-amber-700 bg-amber-50 rounded font-bold border border-amber-200 ${activeTab === 'reserved' ? 'px-3 py-1.5 text-xs' : 'px-1.5 text-[10px]'}`}>
+                                محجوز: {book.reservedLandscapeStock}
+                              </span>
+                            )}
                         </div>
-                        <div className="flex gap-2 text-[10px] mt-1">
-                            <span className="text-green-700 bg-green-50 px-1.5 rounded font-bold border border-green-200">حر: {book.freeLandscapeStock}</span>
-                            <span className="text-amber-700 bg-amber-50 px-1.5 rounded font-bold border border-amber-200">محجوز: {book.reservedLandscapeStock}</span>
-                        </div>
+
                       </div>
                     </td>
+
                   </tr>
                 ))
               ) : (
