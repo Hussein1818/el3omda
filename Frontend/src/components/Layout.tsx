@@ -46,7 +46,7 @@ export default function Layout() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans text-gray-900" dir="rtl">
+    <div className="flex h-screen overflow-hidden bg-slate-50 font-sans text-gray-900" dir="rtl">
       
       {isSidebarOpen && (
         <div 
@@ -55,8 +55,8 @@ export default function Layout() {
         ></div>
       )}
 
-      <aside className={`fixed inset-y-0 right-0 z-50 flex w-64 flex-col border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 lg:shadow-sm ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+      <aside className={`fixed inset-y-0 right-0 z-50 flex h-full w-64 flex-col border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 lg:shadow-sm ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
@@ -94,7 +94,7 @@ export default function Layout() {
           })}
         </nav>
 
-        <div className="p-4 border-t border-gray-100">
+        <div className="p-4 border-t border-gray-100 shrink-0">
           <Link 
             to="/login" 
             onClick={handleLogout}
@@ -105,9 +105,9 @@ export default function Layout() {
         </div>
       </aside>
 
-      <div className="flex flex-1 flex-col overflow-hidden w-full">
+      <div className="flex flex-1 flex-col overflow-hidden w-full h-full">
         
-        <header className="flex h-20 items-center justify-between border-b border-gray-200 bg-white px-4 lg:px-8 shadow-sm">
+        <header className="flex h-20 items-center justify-between border-b border-gray-200 bg-white px-4 lg:px-8 shadow-sm shrink-0">
           <div>
             <button 
               onClick={() => setIsSidebarOpen(true)}
@@ -129,7 +129,7 @@ export default function Layout() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 lg:p-8">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 lg:p-8 h-full">
           <Outlet />
         </main>
 

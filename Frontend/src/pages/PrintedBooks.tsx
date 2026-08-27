@@ -37,6 +37,7 @@ export default function PrintedBooks() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'all' | 'free' | 'reserved'>('all');
 
   const [filterStage, setFilterStage] = useState('ابتدائي');
   const [filterYear, setFilterYear] = useState('الصف الأول');
@@ -134,7 +135,7 @@ export default function PrintedBooks() {
   };
 
   const handleQuickDeduct = async (bookId: string, format: number) => {
-    if (!window.confirm('هل أنت متأكد من خصم نسخة واحدة من هذا الكتاب؟')) return;
+    if (!window.confirm('هل أنت متأكد من خصم نسخة واحدة من هذا الكتاب؟ (هذا لا يلغي حجوزات الطلاب)')) return;
     try {
       await api.post('/books/adjust-inventory', {
         bookId,
@@ -145,6 +146,20 @@ export default function PrintedBooks() {
       fetchInventory();
     } catch (error) {
       alert('حدث خطأ أثناء خصم النسخة.');
+    }
+  };
+
+  const handleQuickAdd = async (bookId: string, format: number) => {
+    try {
+      await api.post('/books/adjust-inventory', {
+        bookId,
+        format,
+        quantity: 1,
+        isAddition: true
+      });
+      fetchInventory();
+    } catch (error) {
+      alert('حدث خطأ أثناء إضافة النسخة.');
     }
   };
 
@@ -168,17 +183,25 @@ export default function PrintedBooks() {
       .toLowerCase();
   };
 
-  const filteredInventory = inventory.filter(b => 
-    normalizeArabic(b.name).includes(normalizeArabic(searchTerm)) || 
-    normalizeArabic(b.subject).includes(normalizeArabic(searchTerm))
-  );
+  const filteredInventory = inventory.filter(b => {
+    const matchesSearch = normalizeArabic(b.name).includes(normalizeArabic(searchTerm)) || normalizeArabic(b.subject).includes(normalizeArabic(searchTerm));
+    
+    let matchesTab = true;
+    if (activeTab === 'free') {
+        matchesTab = b.freePortraitStock > 0 || b.freeLandscapeStock > 0;
+    } else if (activeTab === 'reserved') {
+        matchesTab = b.reservedPortraitStock > 0 || b.reservedLandscapeStock > 0;
+    }
+
+    return matchesSearch && matchesTab;
+  });
 
   return (
     <div className="space-y-6 relative h-full flex flex-col">
       <div className="flex items-center justify-between shrink-0">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">المخزون المطبوع</h2>
-          <p className="mt-1 text-sm text-gray-500">إدارة الكتب الجاهزة على الأرفف لتسليمها للطلاب.</p>
+          <p className="mt-1 text-sm text-gray-500">إدارة الكتب الجاهزة على الأرفف وتتبع المحجوز والحر.</p>
         </div>
         <div className="flex gap-3">
           <input 
@@ -194,8 +217,29 @@ export default function PrintedBooks() {
         </div>
       </div>
 
+      <div className="flex border-b border-gray-200 mb-4 shrink-0">
+        <button 
+          onClick={() => setActiveTab('all')} 
+          className={`py-3 px-6 font-bold text-sm border-b-2 transition-colors ${activeTab === 'all' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+        >
+          كل المخزون
+        </button>
+        <button 
+          onClick={() => setActiveTab('free')} 
+          className={`py-3 px-6 font-bold text-sm border-b-2 transition-colors ${activeTab === 'free' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+        >
+          الكتب الحرة فقط
+        </button>
+        <button 
+          onClick={() => setActiveTab('reserved')} 
+          className={`py-3 px-6 font-bold text-sm border-b-2 transition-colors ${activeTab === 'reserved' ? 'border-amber-600 text-amber-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+        >
+          الكتب المحجوزة فقط
+        </button>
+      </div>
+
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm flex-1 flex flex-col">
-        <div className="overflow-y-auto flex-1 h-[calc(100vh-200px)]">
+        <div className="overflow-y-auto flex-1 h-[calc(100vh-250px)]">
           <table className="w-full text-right text-sm text-gray-500 relative">
             <thead className="bg-gray-50 text-xs uppercase text-gray-700 sticky top-0 z-10 shadow-sm">
               <tr>
@@ -222,16 +266,10 @@ export default function PrintedBooks() {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex flex-col items-center gap-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                             <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-bold">كلي: {book.totalPortraitStock}</span>
-                            <button 
-                            onClick={() => handleQuickDeduct(book.id, 1)}
-                            disabled={book.totalPortraitStock <= 0}
-                            className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30"
-                            title="خصم نسخة"
-                            >
-                            ➖
-                            </button>
+                            <button onClick={() => handleQuickAdd(book.id, 1)} className="text-green-600 bg-green-50 hover:bg-green-100 px-2 py-1 rounded text-xs font-bold transition-colors">➕</button>
+                            <button onClick={() => handleQuickDeduct(book.id, 1)} disabled={book.totalPortraitStock <= 0} className="text-red-500 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30">➖</button>
                         </div>
                         <div className="flex gap-2 text-[10px] mt-1">
                             <span className="text-green-700 bg-green-50 px-1.5 rounded font-bold border border-green-200">حر: {book.freePortraitStock}</span>
@@ -241,16 +279,10 @@ export default function PrintedBooks() {
                     </td>
                     <td className="px-6 py-4 text-center">
                     <div className="flex flex-col items-center gap-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                             <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-bold">كلي: {book.totalLandscapeStock}</span>
-                            <button 
-                            onClick={() => handleQuickDeduct(book.id, 2)}
-                            disabled={book.totalLandscapeStock <= 0}
-                            className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30"
-                            title="خصم نسخة"
-                            >
-                            ➖
-                            </button>
+                            <button onClick={() => handleQuickAdd(book.id, 2)} className="text-green-600 bg-green-50 hover:bg-green-100 px-2 py-1 rounded text-xs font-bold transition-colors">➕</button>
+                            <button onClick={() => handleQuickDeduct(book.id, 2)} disabled={book.totalLandscapeStock <= 0} className="text-red-500 bg-red-50 hover:bg-red-100 px-2 py-1 rounded text-xs font-bold transition-colors disabled:opacity-30">➖</button>
                         </div>
                         <div className="flex gap-2 text-[10px] mt-1">
                             <span className="text-green-700 bg-green-50 px-1.5 rounded font-bold border border-green-200">حر: {book.freeLandscapeStock}</span>
@@ -261,7 +293,7 @@ export default function PrintedBooks() {
                   </tr>
                 ))
               ) : (
-                <tr><td colSpan={5} className="py-8 text-center text-gray-500">لا يوجد كتب في المخزون تطابق بحثك.</td></tr>
+                <tr><td colSpan={5} className="py-8 text-center text-gray-500">لا يوجد كتب في المخزون تطابق التصفية الحالية.</td></tr>
               )}
             </tbody>
           </table>
