@@ -8,11 +8,11 @@ import Settings from './pages/Settings';
 import Layout from './components/Layout';
 import PrintedBooks from './pages/PrintedBooks';
 
-
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/login" element={<Login />} />
         
         <Route element={<Layout />}>
@@ -24,7 +24,7 @@ function App() {
           <Route path="/printed-books" element={<PrintedBooks />} />
         </Route>
         
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );
