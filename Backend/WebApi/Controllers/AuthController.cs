@@ -63,18 +63,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout()
+    public IActionResult Logout()
     {
-        var refreshToken = Request.Cookies["refreshToken"];
-
-        if (!string.IsNullOrEmpty(refreshToken))
-        {
-            var command = new RevokeTokenCommand(refreshToken);
-            await _mediator.Send(command);
-        }
-
         Response.Cookies.Delete("refreshToken");
-
         return NoContent();
     }
 

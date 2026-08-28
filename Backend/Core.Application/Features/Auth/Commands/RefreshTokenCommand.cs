@@ -46,13 +46,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, (
         };
 
         var accessToken = _tokenService.GenerateAccessToken(claims);
-        var newRefreshToken = _tokenService.GenerateRefreshToken();
-        var newRefreshTokenExpiration = DateTime.UtcNow.AddDays(double.Parse(_configuration["JwtSettings:RefreshTokenExpirationDays"]!));
 
-        admin.UpdateRefreshToken(newRefreshToken, newRefreshTokenExpiration);
-        adminRepository.Update(admin);
-        await _unitOfWork.CompleteAsync(cancellationToken);
-
-        return (new TokenResponseDto(accessToken), newRefreshToken, newRefreshTokenExpiration);
+        return (new TokenResponseDto(accessToken), admin.RefreshToken ?? string.Empty, admin.RefreshTokenExpiryTime ?? DateTime.UtcNow);
     }
 }

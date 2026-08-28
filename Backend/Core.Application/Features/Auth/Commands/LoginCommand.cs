@@ -46,12 +46,19 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, (TokenResponseD
         };
 
         var accessToken = _tokenService.GenerateAccessToken(claims);
-        var refreshToken = _tokenService.GenerateRefreshToken();
-        var refreshTokenExpiration = DateTime.UtcNow.AddDays(double.Parse(_configuration["JwtSettings:RefreshTokenExpirationDays"]!));
 
-        admin.UpdateRefreshToken(refreshToken, refreshTokenExpiration);
-        adminRepository.Update(admin);
-        await _unitOfWork.CompleteAsync(cancellationToken);
+        string refreshToken = admin.RefreshToken ?? string.Empty;
+        DateTime refreshTokenExpiration = admin.RefreshTokenExpiryTime ?? DateTime.MinValue;
+
+        if (string.IsNullOrEmpty(refreshToken) || refreshTokenExpiration <= DateTime.UtcNow)
+        {
+            refreshToken = _tokenService.GenerateRefreshToken();
+            refreshTokenExpiration = DateTime.UtcNow.AddDays(double.Parse(_configuration["JwtSettings:RefreshTokenExpirationDays"]!));
+
+            admin.UpdateRefreshToken(refreshToken, refreshTokenExpiration);
+            adminRepository.Update(admin);
+            await _unitOfWork.CompleteAsync(cancellationToken);
+        }
 
         return (new TokenResponseDto(accessToken), refreshToken, refreshTokenExpiration);
     }
